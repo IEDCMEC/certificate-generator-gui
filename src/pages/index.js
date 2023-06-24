@@ -60,12 +60,10 @@ function App() {
     formData.append("certificateImage", image);
 
     try {
-      console.log("formData", formData);
       const response = await axios.post("/api/generateCertificate", formData, {
         responseType: "blob",
       });
       const file = new Blob([response.data], { type: "application/zip" });
-      console.log("file", file);
       saveAs(file, "certificates.zip");
     } catch (error) {
       console.error("Error generating certificates:", error);
