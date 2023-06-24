@@ -53,6 +53,8 @@ const uploadImage = async (req, res) => {
                   namesArray[i]
                 );
 
+                console.log("certificate name", namesArray[i]);
+
                 const certificateBuffer = await certificate.getBufferAsync(
                   Jimp.MIME_JPEG
                 );
