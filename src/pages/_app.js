@@ -1,5 +1,12 @@
-import '@/styles/globals.css'
+import "@/styles/globals.css";
+import { Toaster } from "react-hot-toast";
 
 export default function App({ Component, pageProps }) {
-  return <Component {...pageProps} />
+  return (
+    <>
+      <title>Certificate Generator</title>
+      <Toaster />
+      <Component {...pageProps} />
+    </>
+  );
 }
