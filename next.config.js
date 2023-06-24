@@ -1,16 +1,17 @@
 const nextConfig = {
   reactStrictMode: true,
-  // Add your custom configurations here
-  async rewrites() {
-    return [
-      {
-        source: '/fonts/:path*',
-        destination: '/public/fonts/:path*',
+  webpack(config) {
+    config.module.rules.push({
+      test: /\.fnt$/,
+      loader: "file-loader",
+      options: {
+        publicPath: "/_next",
+        name: "static/fonts/[name].[hash].[ext]",
       },
-    ];
+    });
+
+    return config;
   },
-  // Add other custom configurations if needed
-  output: "standalone"
 };
 
 module.exports = nextConfig;

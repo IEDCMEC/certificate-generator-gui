@@ -3,6 +3,7 @@ import csv from "csv-parser";
 import Jimp from "jimp";
 import JSZip from "jszip";
 import multiparty from "multiparty";
+import "public/fonts/poppins.fnt";
 
 const uploadImage = async (req, res) => {
   if (req.method === "POST") {
