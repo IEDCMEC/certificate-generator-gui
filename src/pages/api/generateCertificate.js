@@ -35,7 +35,7 @@ const uploadImage = async (req, res) => {
               for (let i = 0; i < namesArray.length; i++) {
                 const certificate = certificateImage.clone();
 
-                const font = await Jimp.loadFont("../../fonts/poppins.fnt");
+                const font = await Jimp.loadFont("public/fonts/poppins.fnt");
                 const textWidth = Jimp.measureText(font, namesArray[i]);
                 const xPos = (certificate.bitmap.width - textWidth) / 2;
 
