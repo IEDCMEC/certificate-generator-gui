@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { saveAs } from "file-saver";
 import axios from "axios";
@@ -10,6 +10,22 @@ function App() {
   const [yPosition, setYPosition] = useState(null);
   const [csvFile, setCSVFile] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const imageRef = useRef(null);
+
+  useEffect(() => {
+    if (image) {
+      const imageElement = imageRef.current;
+      const imageRect = imageElement.getBoundingClientRect();
+
+      const textWidth = 200; // Replace with the actual text width
+
+      const x = (imageRect.width - textWidth) / 2;
+      const y = imageRect.height / 2;
+
+      setXPosition(x);
+      setYPosition(y);
+    }
+  }, [image]);
 
   const onImageDrop = (acceptedFiles) => {
     if (acceptedFiles.length > 0) {
@@ -42,14 +58,30 @@ function App() {
 
   const handleImageClick = (event) => {
     const { offsetX, offsetY } = event.nativeEvent;
-    const imageElement = event.target;
+    const imageElement = imageRef.current;
     const imageRect = imageElement.getBoundingClientRect();
 
     const textWidth = 200; // Replace with the actual text width
-    const x = (imageElement.offsetWidth - textWidth) / 2;
+
+    let x = offsetX + imageRect.left - textWidth / 2;
+    let y = offsetY + imageRect.top;
+
+    // Adjust x position to stay within image boundaries
+    if (x < 0) {
+      x = 0;
+    } else if (x > imageRect.width - textWidth) {
+      x = imageRect.width - textWidth;
+    }
+
+    // Adjust y position to stay within image boundaries
+    if (y < 0) {
+      y = 0;
+    } else if (y > imageRect.height) {
+      y = imageRect.height;
+    }
 
     setXPosition(x);
-    setYPosition(offsetY + imageRect.top);
+    setYPosition(y);
   };
 
   const generateCertificates = async () => {
@@ -72,8 +104,10 @@ function App() {
       console.error("Error generating certificates:", error);
     }
   };
+
   return (
-    <div>
+    <div className="container">
+      <h1 className="heading">Certificate Generator</h1>
       {isLoading && (
         <div className="overlay">
           <div className="loader"></div>
@@ -83,12 +117,15 @@ function App() {
         <input {...getInputPropsImage()} />
         <p>Drag and drop an image file here, or click to select a file.</p>
       </div>
+      <br />
       {image && (
         <div style={imageContainerStyles}>
           <img
+            id="uploaded-image"
             src={imageURL}
             alt="Uploaded"
             style={imageStyles}
+            ref={imageRef}
             onClick={handleImageClick}
           />
           {xPosition !== null && yPosition !== null && (
@@ -112,22 +149,77 @@ function App() {
           )}
         </div>
       )}
+      <br />
+      {csvFile ? (
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            gap: "10px",
+            alignItems: "center",
+          }}
+        >
+          <p>CSV File: {csvFile.name}</p>
+          <button onClick={() => saveAs(csvFile, csvFile.name)}>
+            View/Download
+          </button>
+        </div>
+      ) : (
+        <div {...getRootPropsCSV()} style={dropzoneStyles}>
+          <input {...getInputPropsCSV()} />
 
-      <div {...getRootPropsCSV()} style={dropzoneStyles}>
-        <input {...getInputPropsCSV()} />
-        <p>Drag and drop a CSV file here, or click to select a file.</p>
+          <p>Drag and drop a CSV file here, or click to select a file.</p>
+        </div>
+      )}
+
+      <br />
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          gap: "10px",
+          alignItems: "center",
+        }}
+      >
+        <input
+          type="number"
+          placeholder="Enter Y-coordinate"
+          value={yPosition !== null ? yPosition : ""}
+          onChange={(e) => setYPosition(parseInt(e.target.value))}
+        />
+
+        <button onClick={() => setYPosition(null)}>Reset Y-coordinate</button>
       </div>
-
-      <input
-        type="number"
-        placeholder="Enter Y-coordinate"
-        value={yPosition !== null ? yPosition : ""}
-        onChange={(e) => setYPosition(parseInt(e.target.value))}
-      />
-
-      <button onClick={() => setYPosition(null)}>Reset Y-coordinate</button>
-
-      <button onClick={generateCertificates}>Generate Certificates</button>
+      <br />
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          gap: "10px",
+          alignItems: "center",
+        }}
+      >
+        <button
+          onClick={() => {
+            const imageElement = imageRef.current;
+            const textWidth = 200; // Replace with the actual text width
+            const x = (imageElement.offsetWidth - textWidth) / 2;
+            setXPosition(x);
+          }}
+        >
+          Center X-coordinate
+        </button>
+      </div>
+      <br />
+      <button
+        onClick={generateCertificates}
+        style={{
+          alignSelf: "center",
+        }}
+      >
+        Generate Certificates
+      </button>
+      <footer className="footer">Made with ❤️ IEDC MEC 2023</footer>
     </div>
   );
 }
