@@ -4,12 +4,13 @@ const nextConfig = {
   async rewrites() {
     return [
       {
-        source: '/public/fonts/:path*',
+        source: '/fonts/:path*',
         destination: '/public/fonts/:path*',
       },
     ];
   },
   // Add other custom configurations if needed
+  output: "standalone"
 };
 
 module.exports = nextConfig;
