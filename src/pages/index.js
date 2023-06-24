@@ -9,6 +9,7 @@ function App() {
   const [xPosition, setXPosition] = useState(null);
   const [yPosition, setYPosition] = useState(null);
   const [csvFile, setCSVFile] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const onImageDrop = (acceptedFiles) => {
     if (acceptedFiles.length > 0) {
@@ -60,9 +61,11 @@ function App() {
     formData.append("certificateImage", image);
 
     try {
+      setIsLoading(true);
       const response = await axios.post("/api/generateCertificate", formData, {
         responseType: "blob",
       });
+      setIsLoading(false);
       const file = new Blob([response.data], { type: "application/zip" });
       saveAs(file, "certificates.zip");
     } catch (error) {
@@ -71,6 +74,11 @@ function App() {
   };
   return (
     <div>
+      {isLoading && (
+        <div className="overlay">
+          <div className="loader"></div>
+        </div>
+      )}
       <div {...getRootPropsImage()} style={dropzoneStyles}>
         <input {...getInputPropsImage()} />
         <p>Drag and drop an image file here, or click to select a file.</p>
