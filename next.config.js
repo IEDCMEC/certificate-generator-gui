@@ -4,7 +4,7 @@ const nextConfig = {
   async rewrites() {
     return [
       {
-        source: '/fonts/:path*',
+        source: '/public/fonts/:path*',
         destination: '/public/fonts/:path*',
       },
     ];
