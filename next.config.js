@@ -1,6 +1,15 @@
-/** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-}
+  // Add your custom configurations here
+  async rewrites() {
+    return [
+      {
+        source: '/fonts/:path*',
+        destination: '/public/fonts/:path*',
+      },
+    ];
+  },
+  // Add other custom configurations if needed
+};
 
-module.exports = nextConfig
+module.exports = nextConfig;
