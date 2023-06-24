@@ -3,6 +3,7 @@ import csv from "csv-parser";
 import Jimp from "jimp";
 import JSZip from "jszip";
 import multiparty from "multiparty";
+import path from "path";
 
 const uploadImage = async (req, res) => {
   if (req.method === "POST") {
@@ -36,7 +37,12 @@ const uploadImage = async (req, res) => {
                 const certificate = certificateImage.clone();
 
                 // const font = await Jimp.loadFont("public/fonts/poppins.fnt");
-                const font = await Jimp.loadFont(Jimp.FONT_SANS_32_BLACK);
+                const jimpFont = path.resolve(
+                  "./public/fonts/poppins.fnt"
+                );
+                path.resolve("./public/fonts/poppins.png");
+            
+                const font = await Jimp.loadFont(jimpFont);
                 const textWidth = Jimp.measureText(font, namesArray[i]);
                 const xPos = (certificate.bitmap.width - textWidth) / 2;
 
