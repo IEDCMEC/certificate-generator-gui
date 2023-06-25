@@ -140,13 +140,14 @@ function App() {
       setIsLoading(true);
       const { header, data } = csvFile;
       const dataRows = data.map((row) => row.join(","));
-      const batchSize = 10;
+      const batchSize = 20;
       const batches = [];
 
       if (dataRows && dataRows?.length > 0) {
         // loop code here
         for (let i = 0; i < dataRows?.length; i += batchSize) {
           const batch = dataRows.slice(i, i + batchSize);
+          if(batch.length===0) break;
           batch.unshift(header.join(",")); // Add the header to the beginning of the batch
           console.log("batch", batch);
           batches.push(batch);
