@@ -260,6 +260,9 @@ function App() {
           </div>
         )}
         <br />
+        <p>
+          Give Editor Access to (<b>firebase-adminsdk-7lnmg@certificate-generator-iedc.iam.gserviceaccount.com</b>) to the drive folder
+        </p>
         <input
           type="text"
           placeholder="Enter the Drive Link"
