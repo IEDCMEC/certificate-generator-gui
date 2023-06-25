@@ -19,17 +19,17 @@ function App() {
   useEffect(() => {
     if (image) {
       const imageElement = imageRef.current;
-      const imageRect = imageElement.getBoundingClientRect();
-
+      // const imageRect = imageElement.getBoundingClientRect();
+      console.log(imageElement.offsetHeight, imageElement.offsetWidth);
       const textWidth = 200; // Replace with the actual text width
 
-      const x = (imageRect.width - textWidth) / 2;
-      const y = imageRect.height / 2;
+      const x = (imageElement.offsetWidth  - textWidth) / 2;
+      const y = imageElement.offsetHeight / 2;
 
       setXPosition(x);
       setYPosition(y);
     }
-  }, [image]);
+  }, [imageRef.current]);
 
   const onImageDrop = (acceptedFiles) => {
     if (acceptedFiles?.length > 0) {
@@ -88,13 +88,14 @@ function App() {
 
   const handleImageClick = (event) => {
     const { offsetX, offsetY } = event.nativeEvent;
+    console.log(offsetX, offsetY);
     const imageElement = imageRef.current;
     const imageRect = imageElement.getBoundingClientRect();
-
+    console.log(imageRect.width, imageRect.height); 
     const textWidth = 200; // Replace with the actual text width
 
-    let x = offsetX + imageRect.left - textWidth / 2;
-    let y = offsetY + imageRect.top;
+    let x = offsetX - textWidth / 2;
+    let y = offsetY;
 
     // Adjust x position to stay within image boundaries
     if (x < 0) {
