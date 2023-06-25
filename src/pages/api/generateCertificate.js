@@ -27,6 +27,7 @@ const uploadImage = async (req, res) => {
           })
           .on("end", async () => {
             try {
+              console.log("Started rowId", data.fields.rowId[0]);
               const certificateImage = await Jimp.read(
                 data.files.certificateImage[0].path
               ); // Access the uploaded certificate image path
@@ -52,8 +53,6 @@ const uploadImage = async (req, res) => {
                     namesArray[i]
                   );
 
-                  console.log("certificate name", namesArray[i]);
-
                   const certificateBuffer = await certificate.getBufferAsync(
                     Jimp.MIME_JPEG
                   );
@@ -68,7 +67,7 @@ const uploadImage = async (req, res) => {
                 "Content-Disposition",
                 "attachment; filename=certificates.zip"
               );
-
+              console.log("Finished rowId", data.fields.rowId[0]);
               res.send(zipBuffer);
             } catch (error) {
               reject(`Error generating certificates: ${error}`);

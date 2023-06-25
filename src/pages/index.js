@@ -157,10 +157,11 @@ function App() {
         return;
       }
 
-      const requests = batches.map((batch) => {
+      const requests = batches.map((batch,index) => {
         const batchData = batch.join("\n");
         formData.set("csvFile", new Blob([batchData], { type: "text/csv" }));
-
+        formData.set("rowId",index);
+        console.log("formData");
         return axios.post("/api/generateCertificate", formData, {
           responseType: "blob",
         });
