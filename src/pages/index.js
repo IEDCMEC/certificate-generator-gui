@@ -3,6 +3,8 @@ import { useDropzone } from "react-dropzone";
 import { saveAs } from "file-saver";
 import axios from "axios";
 import { toast } from "react-hot-toast";
+import Papa from "papaparse";
+import JSZip from "jszip";
 
 function App() {
   const [image, setImage] = useState(null);
@@ -11,6 +13,7 @@ function App() {
   const [yPosition, setYPosition] = useState(null);
   const [csvFile, setCSVFile] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [rowCount, setRowCount] = useState(0);
   const imageRef = useRef(null);
 
   useEffect(() => {
@@ -29,7 +32,7 @@ function App() {
   }, [image]);
 
   const onImageDrop = (acceptedFiles) => {
-    if (acceptedFiles.length > 0) {
+    if (acceptedFiles?.length > 0) {
       const file = acceptedFiles[0];
       if (file.type === "image/png" || file.type === "image/jpeg") {
         setImage(file);
@@ -39,14 +42,25 @@ function App() {
   };
 
   const onCSVDrop = (acceptedFiles) => {
-    if (acceptedFiles.length > 0) {
+    if (acceptedFiles?.length > 0) {
       const file = acceptedFiles[0];
 
       if (
         file.type === "text/csv" ||
         file.type === "application/vnd.ms-excel"
       ) {
-        setCSVFile(file);
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          const csvData = event.target.result;
+          const parsedData = Papa.parse(csvData);
+          const rows = parsedData.data;
+          const header = rows[0];
+          const dataRows = rows.slice(1);
+
+          setCSVFile({ file, header, data: dataRows });
+          setRowCount(dataRows?.length); // Set the row count excluding the header
+        };
+        reader.readAsText(file);
       }
     }
   };
@@ -56,6 +70,21 @@ function App() {
 
   const { getRootProps: getRootPropsCSV, getInputProps: getInputPropsCSV } =
     useDropzone({ onDrop: onCSVDrop });
+
+  const zipFiles = (blobs) => {
+    const zip = new JSZip();
+
+    // Add each blob to the zip
+    blobs.forEach((blob) => {
+      zip.file(blob.name, blob.data);
+    });
+
+    // Generate the zip file asynchronously
+    zip.generateAsync({ type: "blob" }).then((content) => {
+      // Save the zip file using the saveAs function
+      saveAs(content, "files.zip");
+    });
+  };
 
   const handleImageClick = (event) => {
     const { offsetX, offsetY } = event.nativeEvent;
@@ -105,18 +134,58 @@ function App() {
 
     formData.append("xPosition", xPosition);
     formData.append("yPosition", yPosition);
-    formData.append("csvFile", csvFile);
     formData.append("certificateImage", image);
 
     try {
       setIsLoading(true);
-      const response = await axios.post("/api/generateCertificate", formData, {
-        responseType: "blob",
+      const { header, data } = csvFile;
+      const dataRows = data.map((row) => row.join(","));
+      const batchSize = 20;
+      const batches = [];
+
+      if (dataRows && dataRows?.length > 0) {
+        // loop code here
+        for (let i = 0; i < dataRows?.length; i += batchSize) {
+          const batch = dataRows.slice(i, i + batchSize);
+          if(batch.length===0) break;
+          batch.unshift(header.join(",")); // Add the header to the beginning of the batch
+          console.log("batch", batch);
+          batches.push(batch);
+        }
+      } else {
+        toast.error(`Error generating certificates`);
+        return;
+      }
+
+      const requests = batches.map((batch) => {
+        const batchData = batch.join("\n");
+        formData.set("csvFile", new Blob([batchData], { type: "text/csv" }));
+
+        return axios.post("/api/generateCertificate", formData, {
+          responseType: "blob",
+        });
       });
+
+      const responses = await Promise.all(requests);
+
+      const zipBlobs = [];
+
+      if (responses && responses?.length > 0) {
+        for (let i = 0; i < responses?.length; i++) {
+          const zipData = await responses[i].data;
+          const blob = new Blob([zipData], { type: "application/zip" });
+          const fileName = `batch_${i + 1}.zip`;
+          zipBlobs.push({ name: fileName, data: blob });
+        }
+      } else {
+        toast.error(`Error generating certificates`);
+        return;
+      }
+
+      // Zip the blobs
+      zipFiles(zipBlobs);
       setIsLoading(false);
       toast.success(`Certificates generated successfully!`);
-      const file = new Blob([response.data], { type: "application/zip" });
-      saveAs(file, "certificates.zip");
     } catch (error) {
       setIsLoading(false);
       toast.error(`Error generating certificates`);
@@ -185,7 +254,9 @@ function App() {
                 onChange={(e) => setYPosition(parseInt(e.target.value))}
               />
 
-              <button onClick={() => setYPosition(imageRef.current.offsetHeight / 2)}>
+              <button
+                onClick={() => setYPosition(imageRef.current.offsetHeight / 2)}
+              >
                 Reset Y-coordinate
               </button>
             </div>
