@@ -140,7 +140,7 @@ function App() {
       setIsLoading(true);
       const { header, data } = csvFile;
       const dataRows = data.map((row) => row.join(","));
-      const batchSize = 20;
+      const batchSize = 10;
       const batches = [];
 
       if (dataRows && dataRows?.length > 0) {
