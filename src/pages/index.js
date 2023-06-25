@@ -14,6 +14,8 @@ function App() {
   const [csvFile, setCSVFile] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [rowCount, setRowCount] = useState(0);
+  const [driveLink, setDriveLink] = useState("");
+  const [email, setEmail] = useState("");
   const imageRef = useRef(null);
 
   useEffect(() => {
@@ -22,7 +24,7 @@ function App() {
       // const imageRect = imageElement.getBoundingClientRect();
       const textWidth = 200; // Replace with the actual text width
 
-      const x = (imageElement.offsetWidth  - textWidth) / 2;
+      const x = (imageElement.offsetWidth - textWidth) / 2;
       const y = imageElement.offsetHeight / 2;
 
       setXPosition(x);
@@ -48,18 +50,8 @@ function App() {
         file.type === "text/csv" ||
         file.type === "application/vnd.ms-excel"
       ) {
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          const csvData = event.target.result;
-          const parsedData = Papa.parse(csvData);
-          const rows = parsedData.data;
-          const header = rows[0];
-          const dataRows = rows.slice(1);
-
-          setCSVFile({ file, header, data: dataRows });
-          setRowCount(dataRows?.length); // Set the row count excluding the header
-        };
-        reader.readAsText(file);
+        console.log(file);
+        setCSVFile(file);
       }
     }
   };
@@ -69,21 +61,6 @@ function App() {
 
   const { getRootProps: getRootPropsCSV, getInputProps: getInputPropsCSV } =
     useDropzone({ onDrop: onCSVDrop });
-
-  const zipFiles = (blobs) => {
-    const zip = new JSZip();
-
-    // Add each blob to the zip
-    blobs.forEach((blob) => {
-      zip.file(blob.name, blob.data);
-    });
-
-    // Generate the zip file asynchronously
-    zip.generateAsync({ type: "blob" }).then((content) => {
-      // Save the zip file using the saveAs function
-      saveAs(content, "files.zip");
-    });
-  };
 
   const handleImageClick = (event) => {
     const { offsetX, offsetY } = event.nativeEvent;
@@ -127,68 +104,47 @@ function App() {
       return;
     }
 
+    if(!driveLink){
+      toast.error("Please enter a drive link");
+      return; 
+    }
+
+    if(!email){
+      toast.error("Please enter an email");
+      return; 
+    }
+
     toast.success(`Generating certificates...`);
     const formData = new FormData();
 
     formData.append("xPosition", xPosition);
     formData.append("yPosition", yPosition);
     formData.append("certificateImage", image);
+    formData.append("driveLink", driveLink);
+    formData.append("csvFile", csvFile);
+
+    console.log("formData", formData);
 
     try {
       setIsLoading(true);
-      const { header, data } = csvFile;
-      const dataRows = data.map((row) => row.join(","));
-      const batchSize = 10;
-      const batches = [];
-
-      if (dataRows && dataRows?.length > 0) {
-        // loop code here
-        for (let i = 0; i < dataRows?.length; i += batchSize) {
-          const batch = dataRows.slice(i, i + batchSize);
-          if(batch.length===0) break;
-          batch.unshift(header.join(",")); // Add the header to the beginning of the batch
-          console.log("batch", batch);
-          batches.push(batch);
-        }
-      } else {
-        toast.error(`Error generating certificates`);
-        return;
-      }
-
-      const requests = batches.map((batch,index) => {
-        const batchData = batch.join("\n");
-        formData.set("csvFile", new Blob([batchData], { type: "text/csv" }));
-        formData.set("rowId",index);
-        console.log("formData");
-        return axios.post("/api/generateCertificate", formData, {
-          responseType: "blob",
-        });
-      });
-
-      const responses = await Promise.all(requests);
-
-      const zipBlobs = [];
-
-      if (responses && responses?.length > 0) {
-        for (let i = 0; i < responses?.length; i++) {
-          const zipData = await responses[i].data;
-          const blob = new Blob([zipData], { type: "application/zip" });
-          const fileName = `batch_${i + 1}.zip`;
-          zipBlobs.push({ name: fileName, data: blob });
-        }
-      } else {
-        toast.error(`Error generating certificates`);
-        return;
-      }
-
-      // Zip the blobs
-      zipFiles(zipBlobs);
+      const response = await axios.post("/api/generateCertificate", formData);
       setIsLoading(false);
-      toast.success(`Certificates generated successfully!`);
+      if (response.status === 200) {
+        toast.success(`Please check your email for the status`);
+      }
     } catch (error) {
       setIsLoading(false);
       toast.error(`Error generating certificates`);
       console.error("Error generating certificates:", error);
+    }
+    finally
+    {
+      setIsLoading(false);
+      setCSVFile(null);
+      setImage(null);
+      setDriveLink("");
+      setEmail("");
+      document.getElementById("uploaded-image").src = "";
     }
   };
 
@@ -304,6 +260,19 @@ function App() {
           </div>
         )}
         <br />
+        <input
+          type="text"
+          placeholder="Enter the Drive Link"
+          value={driveLink}
+          onChange={(e) => setDriveLink(e.target.value)}
+        />
+        <br />
+        <input
+          type="text"
+          placeholder="Enter the Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
         <button
           onClick={generateCertificates}
           style={{
