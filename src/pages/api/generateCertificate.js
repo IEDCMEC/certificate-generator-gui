@@ -33,32 +33,32 @@ const uploadImage = async (req, res) => {
 
               const zip = new JSZip();
 
-              for (let i = 0; i < namesArray.length; i++) {
-                const certificate = certificateImage.clone();
+              if (namesArray?.length > 0) {
+                for (let i = 0; i < namesArray?.length; i++) {
+                  const certificate = certificateImage.clone();
 
-                // const font = await Jimp.loadFont("public/fonts/poppins.fnt");
-                const jimpFont = path.resolve(
-                  "./public/fonts/poppins.fnt"
-                );
-                path.resolve("./public/fonts/poppins.png");
-            
-                const font = await Jimp.loadFont(jimpFont);
-                const textWidth = Jimp.measureText(font, namesArray[i]);
-                const xPos = (certificate.bitmap.width - textWidth) / 2;
+                  // const font = await Jimp.loadFont("public/fonts/poppins.fnt");
+                  const jimpFont = path.resolve("./public/fonts/poppins.fnt");
+                  path.resolve("./public/fonts/poppins.png");
 
-                certificate.print(
-                  font,
-                  xPos,
-                  parseInt(data.fields.yPosition[0]),
-                  namesArray[i]
-                );
+                  const font = await Jimp.loadFont(jimpFont);
+                  const textWidth = Jimp.measureText(font, namesArray[i]);
+                  const xPos = (certificate.bitmap.width - textWidth) / 2;
 
-                console.log("certificate name", namesArray[i]);
+                  certificate.print(
+                    font,
+                    xPos,
+                    parseInt(data.fields.yPosition[0]),
+                    namesArray[i]
+                  );
 
-                const certificateBuffer = await certificate.getBufferAsync(
-                  Jimp.MIME_JPEG
-                );
-                zip.file(`${namesArray[i]}_${random}.jpg`, certificateBuffer);
+                  console.log("certificate name", namesArray[i]);
+
+                  const certificateBuffer = await certificate.getBufferAsync(
+                    Jimp.MIME_JPEG
+                  );
+                  zip.file(`${namesArray[i]}_${random}.jpg`, certificateBuffer);
+                }
               }
 
               const zipBuffer = await zip.generateAsync({ type: "nodebuffer" });
@@ -86,6 +86,6 @@ export default uploadImage;
 export const config = {
   api: {
     bodyParser: false,
-    responseLimit: "100mb",
+    responseLimit: false,
   },
 };
