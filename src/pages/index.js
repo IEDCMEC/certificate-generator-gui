@@ -20,7 +20,6 @@ function App() {
     if (image) {
       const imageElement = imageRef.current;
       // const imageRect = imageElement.getBoundingClientRect();
-      console.log(imageElement.offsetHeight, imageElement.offsetWidth);
       const textWidth = 200; // Replace with the actual text width
 
       const x = (imageElement.offsetWidth  - textWidth) / 2;
@@ -29,7 +28,7 @@ function App() {
       setXPosition(x);
       setYPosition(y);
     }
-  }, [imageRef.current]);
+  }, [imageRef.current?.offsetHeight, imageRef.current?.offsetWidth]);
 
   const onImageDrop = (acceptedFiles) => {
     if (acceptedFiles?.length > 0) {
@@ -88,10 +87,8 @@ function App() {
 
   const handleImageClick = (event) => {
     const { offsetX, offsetY } = event.nativeEvent;
-    console.log(offsetX, offsetY);
     const imageElement = imageRef.current;
     const imageRect = imageElement.getBoundingClientRect();
-    console.log(imageRect.width, imageRect.height); 
     const textWidth = 200; // Replace with the actual text width
 
     let x = offsetX - textWidth / 2;
