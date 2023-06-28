@@ -70,7 +70,7 @@ const generateCertificates = async (data) => {
               const font = await Jimp.loadFont(jimpFont);
               const textWidth = Jimp.measureText(font, namesArray[i]);
               const xPos = (certificate.bitmap.width - textWidth) / 2;
-              const name = capitalizeFirstLetter(namesArray[i]);
+              const name = await capitalizeFirstLetter(namesArray[i]);
 
               certificate.print(
                 font,
