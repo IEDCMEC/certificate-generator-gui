@@ -92,7 +92,7 @@ const generateCertificates = async (data) => {
                 // Upload the certificate image to Google Drive
                 await drive.files.create({
                   requestBody: {
-                    name: `${name}_${random}.jpg`,
+                    name: `${name}.jpg`,
                     mimeType: "image/jpeg",
                     parents: [folderId],
                   },
@@ -103,7 +103,7 @@ const generateCertificates = async (data) => {
                 });
 
                 console.log(
-                  `Certificate generated for ${name}_${random}.jpg`) 
+                  `Certificate generated for ${name}.jpg`) 
               }
             }
           }
