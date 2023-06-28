@@ -22,6 +22,22 @@ const getFileIdFromLink = (link) => {
   return null;
 };
 
+function capitalizeFirstLetter(str) {
+  // Split the string into an array of words
+  var words = str.split(" ");
+
+  // Iterate through each word
+  for (var i = 0; i < words.length; i++) {
+    // Capitalize the first letter of the word and convert the remaining letters to lowercase
+    words[i] = words[i].charAt(0).toUpperCase() + words[i].slice(1).toLowerCase();
+  }
+
+  // Join the capitalized words back into a string
+  var capitalizedStr = words.join(" ");
+
+  return capitalizedStr;
+}
+
 const generateCertificates = async (data) => {
   const random = Math.floor(100 + Math.random() * 900);
   const namesArray = [];
@@ -54,12 +70,13 @@ const generateCertificates = async (data) => {
               const font = await Jimp.loadFont(jimpFont);
               const textWidth = Jimp.measureText(font, namesArray[i]);
               const xPos = (certificate.bitmap.width - textWidth) / 2;
+              const name = capitalizeFirstLetter(namesArray[i]);
 
               certificate.print(
                 font,
                 xPos,
                 parseInt(data.fields.yPosition[0]),
-                namesArray[i]
+                name
               );
 
               const certificateBuffer = await certificate.getBufferAsync(
@@ -68,14 +85,14 @@ const generateCertificates = async (data) => {
 
               const readableStream = stream.Readable.from(certificateBuffer);
 
-              console.log(`Generating certificate for ${namesArray[i]}...`);
+              console.log(`Generating certificate for ${name}...`);
 
               const folderId = getFileIdFromLink(data.fields.driveLink[0]);
               if (folderId) {
                 // Upload the certificate image to Google Drive
                 await drive.files.create({
                   requestBody: {
-                    name: `${namesArray[i]}_${random}.jpg`,
+                    name: `${name[i]}_${random}.jpg`,
                     mimeType: "image/jpeg",
                     parents: [folderId],
                   },
@@ -86,7 +103,7 @@ const generateCertificates = async (data) => {
                 });
 
                 console.log(
-                  `Certificate generated for ${namesArray[i]}_${random}.jpg`) 
+                  `Certificate generated for ${name}_${random}.jpg`) 
               }
             }
           }
