@@ -5,11 +5,11 @@ import { google } from "googleapis";
 import multiparty from "multiparty";
 import path from "path";
 import stream from "stream";
-import axios from "axios";
+// import axios from "axios";
 
 const credentials = require("../../utils/credentials.json");
-const emailUrl =
-  "https://w2e9j471i2.execute-api.ap-south-1.amazonaws.com/dev/send-email";
+// const emailUrl =
+//   "https://w2e9j471i2.execute-api.ap-south-1.amazonaws.com/dev/send-email";
 
 // Extracts the file ID from the Google Drive share link
 const getFileIdFromLink = (link) => {
@@ -46,8 +46,8 @@ const generateCertificates = async (data) => {
             }),
           });
 
-          if (namesArray?.length > 0) {
-            for (let i = 0; i < namesArray?.length; i++) {
+          if (namesArray) {
+            for (let i = 0; i < namesArray.length; i++) {
               const certificate = certificateImage.clone();
 
               const jimpFont = path.resolve("./public/fonts/poppins.fnt");
@@ -68,6 +68,8 @@ const generateCertificates = async (data) => {
 
               const readableStream = stream.Readable.from(certificateBuffer);
 
+              console.log(`Generating certificate for ${namesArray[i]}...`);
+
               const folderId = getFileIdFromLink(data.fields.driveLink[0]);
               if (folderId) {
                 // Upload the certificate image to Google Drive
@@ -82,6 +84,9 @@ const generateCertificates = async (data) => {
                     body: readableStream,
                   },
                 });
+
+                console.log(
+                  `Certificate generated for ${namesArray[i]}_${random}.jpg`) 
               }
             }
           }
@@ -112,25 +117,26 @@ const processRequest = async (req, res) => {
     // Run certificate generation in the background
     generateCertificates(data)
       .then(async () => {
-        await axios.post(emailUrl, {
-          toEmail: data.fields.email[0],
-          subject: `Your certificate is ready!`,
-          content:
-            `Hi ${data.fields.email[0]},<br><br/>` +
-            `Your certificate is ready. Please check your Google Drive folder.<br><br/>` +
-            `<button style="background-color: #4CAF50; border: none; color: white; padding: 15px 32px; text-align: center; text-decoration: none; display: inline-block;">` +
-            `<a href="${data.fields.driveLink[0]}" style="color: white; text-decoration: none;">` +
-            `View Certificates` +
-            `</a>` +
-            `</button>` +
-            `<br><br/>` +
-            `Thanks,<br><br/>` +
-            `Certificate Generator` +
-            `<br><br/>` +
-            `<strong>IEDC MEC</strong>` +
-            `<br><br/>` +
-            `P.S. This is an auto-generated email. Please do not reply to this email.`,
-        });
+        // await axios.post(emailUrl, {
+        //   toEmail: data.fields.email[0],
+        //   subject: `Your certificate is ready!`,
+        //   content:
+        //     `Hi ${data.fields.email[0]},<br><br/>` +
+        //     `Your certificate is ready. Please check your Google Drive folder.<br><br/>` +
+        //     `<button style="background-color: #4CAF50; border: none; color: white; padding: 15px 32px; text-align: center; text-decoration: none; display: inline-block;">` +
+        //     `<a href="${data.fields.driveLink[0]}" style="color: white; text-decoration: none;">` +
+        //     `View Certificates` +
+        //     `</a>` +
+        //     `</button>` +
+        //     `<br><br/>` +
+        //     `Thanks,<br><br/>` +
+        //     `Certificate Generator` +
+        //     `<br><br/>` +
+        //     `<strong>IEDC MEC</strong>` +
+        //     `<br><br/>` +
+        //     `P.S. This is an auto-generated email. Please do not reply to this email.`,
+        // });
+        console.log("Certificates generated successfully");
       })
       .catch((error) => {
         console.error(error);
